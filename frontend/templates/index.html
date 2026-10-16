@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AquaSentinel AI - Pipeline Leak Detection & Water Loss Monitoring</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <!-- Chart.js for real-time sensor analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="header" role="banner">
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">💧</div>
+      <div>
+        <h1>AquaSentinel AI</h1>
+        <div class="brand-sub">Intelligent Municipal Water Loss & Leak Sentinel</div>
+      </div>
+    </div>
+
+    <div class="header-badges">
+      <span class="badge badge-hackathon" title="Hackathon Theme: Smart Cities & Water Management">
+        <span aria-hidden="true">🏆</span> Sociothon'26 | SDG 6, 11, 12
+      </span>
+      <span class="badge badge-ibm" id="ibmStatusBadge" title="IBM watsonx.ai & Granite Time Series">
+        <span aria-hidden="true">⚡</span> watsonx.ai + Granite TSPulse
+      </span>
+      <span class="badge badge-live" id="liveSimBadge">
+        <span aria-hidden="true">🟢</span> Live IoT Stream Active
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="container" role="main">
+
+    <!-- KPI Summary Banner -->
+    <section class="kpi-grid" aria-label="Key Performance Indicators">
+      <div class="kpi-card">
+        <div class="kpi-icon" aria-hidden="true">🛡️</div>
+        <div class="kpi-info">
+          <h3>Network Health</h3>
+          <div class="kpi-value" id="kpiHealth">92.4%</div>
+          <div class="kpi-sub">Zone 1-6 Operational</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" aria-hidden="true">🚨</div>
+        <div class="kpi-info">
+          <h3>Active Leak Alerts</h3>
+          <div class="kpi-value" id="kpiAlerts">1</div>
+          <div class="kpi-sub" id="kpiAlertsSub">Section B: High Priority</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" aria-hidden="true">🌊</div>
+        <div class="kpi-info">
+          <h3>Water Loss Rate</h3>
+          <div class="kpi-value" id="kpiLossRate">48.5 m³/h</div>
+          <div class="kpi-sub">Estimated Physical Loss</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" aria-hidden="true">💧</div>
+        <div class="kpi-info">
+          <h3>Water Saved (MTD)</h3>
+          <div class="kpi-value" id="kpiWaterSaved">14,820 m³</div>
+          <div class="kpi-sub">Through Early AI Intervention</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" aria-hidden="true">📡</div>
+        <div class="kpi-info">
+          <h3>IoT Sensor Grid</h3>
+          <div class="kpi-value" id="kpiSensors">18 / 18</div>
+          <div class="kpi-sub">Telemetry Refresh: 2.0s</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Dashboard Row -->
+    <div class="main-grid">
+
+      <!-- Left Column: Pipeline Map & Section Telemetry -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Interactive Pipeline Topology Map -->
+        <section class="panel" aria-labelledby="mapHeading">
+          <div class="panel-header">
+            <h2 id="mapHeading"><span aria-hidden="true">🗺️</span> Smart City Pipeline Network Topology</h2>
+            <div style="font-size: 11px; color: var(--text-secondary);">
+              <span style="color:#10b981;">● Normal</span> &nbsp;
+              <span style="color:#f59e0b;">● Warning</span> &nbsp;
+              <span style="color:#ef4444;">● Leak Detected</span> &nbsp;
+              <span style="color:#8b5cf6;">● In Repair</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="map-container" id="svgMapContainer">
+              <svg class="pipeline-svg" id="pipelineSvg" viewBox="0 0 960 520" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Pipeline schematic diagram"></svg>
+            </div>
+            <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted); text-align: right;">
+              * Click any pipeline line or node to focus analytics chart
+            </div>
+          </div>
+        </section>
+
+        <!-- Section Telemetry Table -->
+        <section class="panel" aria-labelledby="telemetryHeading">
+          <div class="panel-header">
+            <h2 id="telemetryHeading"><span aria-hidden="true">📊</span> Zone-Wise Sensor Telemetry & Baseline Deviations</h2>
+            <button class="btn" id="btnManualDetect" title="Trigger full anomaly evaluation cycle">
+              <span aria-hidden="true">⚡</span> Run AI Evaluation
+            </button>
+          </div>
+          <div class="panel-body" style="padding: 0;">
+            <div class="table-responsive">
+              <table class="data-table" id="telemetryTable">
+                <thead>
+                  <tr>
+                    <th>Section</th>
+                    <th>Inlet P (bar)</th>
+                    <th>Outlet P (bar)</th>
+                    <th>Flow (m³/h)</th>
+                    <th>Baseline P</th>
+                    <th>P-Dev (%)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="telemetryTableBody">
+                  <tr><td colspan="7" style="text-align:center;">Loading sensor grid...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Right Column: Real-time Charts & Explainable Alerts -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+
+        <!-- Real-Time Pressure & Flow Chart with Diurnal Baseline -->
+        <section class="panel" aria-labelledby="chartHeading">
+          <div class="panel-header">
+            <h2 id="chartHeading">
+              <span aria-hidden="true">📈</span> Telemetry & AI Baseline: <span id="selectedSectionTitle" style="color: var(--accent-cyan);">Section B (Pipeline 3)</span>
+            </h2>
+            <span style="font-size: 11px; color: var(--text-muted);">Updated Live</span>
+          </div>
+          <div class="panel-body">
+            <div style="position: relative; height: 260px; width: 100%;">
+              <canvas id="sensorChart" aria-label="Pressure and flow chart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- Explainable Alerts & Risk Prioritization Panel -->
+        <section class="panel" aria-labelledby="alertsHeading">
+          <div class="panel-header">
+            <h2 id="alertsHeading"><span aria-hidden="true">🚨</span> Explainable Risk Alerts & AI Diagnosis</h2>
+            <span class="status-pill LEAK_DETECTED" id="activeAlertBadge">1 Critical</span>
+          </div>
+          <div class="panel-body">
+            <div class="alerts-list" id="alertsListContainer">
+              <!-- Populated by app.js -->
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+    </div>
+
+    <!-- Bottom Section: Inspection & Repair Tracking + Simulation Playground -->
+    <div style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 20px;">
+      
+      <!-- Inspection & Repair Tracking (Step 6 Operator Dashboard) -->
+      <section class="panel" aria-labelledby="repairsHeading">
+        <div class="panel-header">
+          <h2 id="repairsHeading"><span aria-hidden="true">🔧</span> Inspection & Repair Tracking (Closed Feedback Loop)</h2>
+          <span style="font-size: 11px; color: var(--text-secondary);">M&amp;R Operational Log</span>
+        </div>
+        <div class="panel-body" style="padding: 0;">
+          <div class="table-responsive">
+            <table class="data-table" id="tasksTable">
+              <thead>
+                <tr>
+                  <th>Task ID</th>
+                  <th>Section</th>
+                  <th>Technician</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Repair Type</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="tasksTableBody">
+                <tr><td colspan="7" style="text-align: center;">No active work orders.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Simulation Playground & BattLeDIM Benchmark Testing -->
+      <section class="panel" aria-labelledby="simHeading">
+        <div class="panel-header">
+          <h2 id="simHeading"><span aria-hidden="true">🧪</span> Simulation &amp; BattLeDIM Benchmark Controls</h2>
+          <span class="status-pill NORMAL" id="simStatusPill">Ready</span>
+        </div>
+        <div class="panel-body" style="display: flex; flex-direction: column; gap: 14px;">
+          <p style="font-size: 12px; color: var(--text-secondary);">
+            Inject simulated hydraulic anomalies to demonstrate AquaSentinel AI's detection, multi-sensor correlation, and automatic alert dispatch in real time:
+          </p>
+
+          <div class="sim-controls">
+            <button class="btn btn-danger" id="btnInjectLeak" title="Inject severe burst on Section B">
+              <span aria-hidden="true">💥</span> Inject Pipe Burst (Section B)
+            </button>
+            <button class="btn btn-danger" id="btnInjectMicroLeak" title="Inject subtle leak on Section C">
+              <span aria-hidden="true">💧</span> Inject Micro-Leak (Section C)
+            </button>
+            <button class="btn" id="btnInjectSupplyDrop" title="Simulate intake pump trip">
+              <span aria-hidden="true">⚠️</span> Simulate Pump Throttling
+            </button>
+            <button class="btn btn-success" id="btnResetSim" title="Reset all pipeline sections to normal">
+              <span aria-hidden="true">🔄</span> Reset Network to Normal
+            </button>
+          </div>
+
+          <hr style="border-color: var(--border-color); margin: 6px 0;">
+
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 13px; font-weight: 600;">BattLeDIM Dataset Evaluation</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Upload SCADA CSV dataset for instant anomaly analysis</div>
+            </div>
+            <button class="btn btn-primary" id="btnOpenUploadModal">
+              <span aria-hidden="true">📁</span> Upload CSV Data
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Modal: Assign Inspection Task -->
+  <div class="modal-overlay" id="assignModal" role="dialog" aria-modal="true" aria-labelledby="assignModalTitle">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="assignModalTitle" style="font-size: 16px;">Dispatch Field Inspection Crew</h3>
+        <button class="btn" style="padding: 2px 8px;" id="btnCloseAssignModal" aria-label="Close modal">✕</button>
+      </div>
+      <form id="assignTaskForm">
+        <input type="hidden" id="assignAlertId">
+        <div class="form-group">
+          <label for="assignSectionName">Target Pipeline Section</label>
+          <input type="text" id="assignSectionName" class="form-control" readonly>
+        </div>
+        <div class="form-group">
+          <label for="assignTechnician">Field Technician Name</label>
+          <input type="text" id="assignTechnician" class="form-control" value="Abhay Kumbhar (Lead Engineer)" required>
+        </div>
+        <div class="form-group">
+          <label for="assignPriority">Dispatch Priority</label>
+          <select id="assignPriority" class="form-control">
+            <option value="CRITICAL">CRITICAL - Emergency Valve Closure</option>
+            <option value="HIGH" selected>HIGH - Acoustic Survey within 2 hrs</option>
+            <option value="MEDIUM">MEDIUM - Standard Maintenance</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="assignNotes">Operational Dispatch Instructions</label>
+          <textarea id="assignNotes" class="form-control" rows="3">Perform ground acoustic sensor listening and check inspection pit for pooling water.</textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+          <button type="button" class="btn" id="btnCancelAssign">Cancel</button>
+          <button type="submit" class="btn btn-primary">Dispatch Crew</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Complete Repair (Closed Feedback Loop) -->
+  <div class="modal-overlay" id="completeModal" role="dialog" aria-modal="true" aria-labelledby="completeModalTitle">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="completeModalTitle" style="font-size: 16px;">Log Repair Findings &amp; Verify Network</h3>
+        <button class="btn" style="padding: 2px 8px;" id="btnCloseCompleteModal" aria-label="Close modal">✕</button>
+      </div>
+      <form id="completeTaskForm">
+        <input type="hidden" id="completeTaskId">
+        <div class="form-group">
+          <label for="repairType">Action / Repair Performed</label>
+          <select id="repairType" class="form-control">
+            <option value="PIPE_CLAMP" selected>Ductile Iron Pipe Repair Clamp Installed</option>
+            <option value="VALVE_REPLACEMENT">Isolation / Gate Valve Replaced</option>
+            <option value="JOINT_SEALING">Bell &amp; Spigot Joint Re-sealed</option>
+            <option value="SECTION_REPLACEMENT">Full Pipe Section Replaced</option>
+            <option value="NO_ISSUE_FOUND">Inspection False Alarm (No Defect)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="repairFindings">Field Inspection Findings</label>
+          <textarea id="repairFindings" class="form-control" rows="2" required>Confirmed circumferential crack at chainage 420m. Clamp applied successfully.</textarea>
+        </div>
+        <div class="form-group">
+          <label for="postRepairPressure">Post-Repair Verified Pressure (bar)</label>
+          <input type="number" step="0.1" id="postRepairPressure" class="form-control" value="5.18" required>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+          <button type="button" class="btn" id="btnCancelComplete">Cancel</button>
+          <button type="submit" class="btn btn-success">Verify &amp; Restore Baseline</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: CSV File Upload -->
+  <div class="modal-overlay" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="uploadModalTitle" style="font-size: 16px;">Upload SCADA / BattLeDIM CSV</h3>
+        <button class="btn" style="padding: 2px 8px;" id="btnCloseUploadModal" aria-label="Close modal">✕</button>
+      </div>
+      <form id="csvUploadForm">
+        <div class="form-group">
+          <label for="csvFileInput">Select Telemetry CSV File</label>
+          <input type="file" id="csvFileInput" class="form-control" accept=".csv" required>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 14px;">
+          * Accepted formats: Standard CSV with columns <code>[timestamp, section_id, pressure, flow]</code> or BattLeDIM sensor telemetry files.
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn" id="btnCancelUpload">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnUploadSubmit">Process &amp; Analyze</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
